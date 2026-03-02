@@ -1,4 +1,4 @@
-# class-mixin-instance
+# Class Mixin in TypeScript
 
 ## Example
 
