@@ -1,5 +1,9 @@
 # Class Mixin in TypeScript
 
+```bash
+bun i class-mixin-instance
+```
+
 ## Example
 
 ```ts
