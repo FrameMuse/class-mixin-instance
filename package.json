@@ -1,6 +1,6 @@
 {
   "name": "class-mixin-instance",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A lightweight TypeScript mixin feature with instanceof support and order-insensitive caching.",
   "keywords": [
     "mixin",
@@ -15,6 +15,9 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "type": "module",
+  "files": [
+    "build"
+  ],
   "author": "FrameMuse",
   "license": "MIT",
   "repository": {
