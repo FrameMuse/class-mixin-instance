@@ -1,15 +1,38 @@
 {
   "name": "class-mixin-instance",
   "version": "0.1.0",
-  "module": "index.ts",
+  "description": "A lightweight TypeScript mixin feature with instanceof support and order-insensitive caching.",
+  "keywords": [
+    "mixin",
+    "typescript",
+    "class",
+    "inheritance",
+    "instanceof",
+    "decorators",
+    "cache",
+    "composition"
+  ],
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "type": "module",
+  "author": "FrameMuse",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FrameMuse/class-mixin-instance"
+  },
   "scripts": {
+    "build": "vite build && bun build:types",
+    "build:types": "tsup src/index.ts --out-dir build --format esm --dts-only --tsconfig tsconfig.build.json",
     "bench": "bun run ./src/mixin.benchmark.mitata.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "mitata": "^1.0.34",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "tsdown": "^0.20.3",
+    "vite": "^7.3.1",
+    "vite-plugin-externalize-deps": "^0.10.0"
   },
   "peerDependencies": {
     "typescript": "^5"

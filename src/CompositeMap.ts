@@ -28,12 +28,12 @@ export class CompositeMap<K extends object[], V> {
     return hashBig ?? hash
   }
 
-  set(keys: K, value: V) {
+  set(keys: K, value: V): this {
     this.objectValues.set(this.hash(keys), value)
     return this
   }
 
-  get(keys: K) {
+  get(keys: K): V | undefined {
     return this.objectValues.get(this.hash(keys))
   }
 }

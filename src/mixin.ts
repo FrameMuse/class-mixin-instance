@@ -13,8 +13,8 @@ type ABC = abstract new (...args: never[]) => unknown
 type Mixin<T extends ABC> = MixinConstructor<T>
 type MixinConstructor<T extends ABC> = new () => UnionToIntersection<InstanceType<T>>
 
-export const MIXIN_METADATA = Symbol("mixin.metadata")
-export const MIXIN_CLASS = Symbol("mixin.class")
+export const MIXIN_METADATA: unique symbol = Symbol("mixin.metadata")
+export const MIXIN_CLASS: unique symbol = Symbol("mixin.class")
 const mixinCache = new CompositeMap<object[], object>()
 
 class MixinEmpty { }
@@ -32,7 +32,7 @@ export function mixin<T extends (abstract new () => void)[]>(...constructors: T)
 
   // extend the first constructor for native instantiation speed
   const [First, ...Rest] = constructors as any[]
-  class Mixin extends First {
+  const Mixin = class Mixin extends First {
     constructor() {
       super()
       // copy over instance properties from the remaining constructors
@@ -127,8 +127,17 @@ export function mixin<T extends (abstract new () => void)[]>(...constructors: T)
 }
 
 export namespace mixin {
-  export function member<T extends Function>(target: T) {
+  export function member<T extends new (...args: any[]) => any>(target: T): T {
+    return class extends target {
+      static [MIXIN_CLASS] = { mixed: [] };
+      static [Symbol.hasInstance](instance: any) {
+        if (!(instance && typeof instance === "object")) {
+          return super[Symbol.hasInstance].call(this, instance)
+        }
 
+        return hasInstance(this, instance, target)
+      }
+    }
   }
 }
 
