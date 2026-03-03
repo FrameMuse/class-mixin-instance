@@ -1,13 +1,26 @@
 # Class Mixin in TypeScript
 
+![bundle size](https://deno.bundlejs.com/badge?q=class-mixin-instance)
+
 [Mixin](https://en.wikipedia.org/wiki/Mixin)s are the type of structure in software development that allows them be included in a more composition way rather than inheritance.
 The closest analogy is if `class User implements Person, Profile { }` would actually implement the properties and methods.
 
 As `implements` is a TypeScript feature, it doesn't exist in runtime, that's why this library relies on `extends` behavior.
 Though it still looks readable - `class User extends mixin(Person, Profile) { }`.
 
-There is an alternative [`ts-mixer`](http://npmjs.com/package/ts-mixer), but this library tries to achive more native feeling,
-like `mixin` is actually a part of JavaScript/TypeScript. This library includes only one method `mixin`, the rest is done via plain JavaScript.
+This library tries to achieve more native feeling, like `mixin` is actually a part of JavaScript/TypeScript. This library includes only one method `mixin`, the rest is done via plain JavaScript.
+
+## Libraries Comparison
+
+|Name              |`ts-mixer`      |`class-mixin-instance`|
+|---------------------|----------------|---------------------|
+|Speed|150,005|**~23,291,632 ops/s**(**~155x faster**)|
+|Static Properties    |✅               |✅         |
+|Protected Members    |✅                 |✅         |
+|Decorator Inheritance|✅ |✅         |
+|`instanceof` Support |❌ via `hasMixin` |✅            |
+|Type Inference       |✅|✅              |
+|Constructor Params   |⚠️ Needs init fn|❌          |
 
 ## Install
 

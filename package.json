@@ -18,6 +18,7 @@
   "files": [
     "build"
   ],
+  "sideEffects": false,
   "author": "FrameMuse",
   "license": "MIT",
   "repository": {

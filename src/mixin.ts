@@ -58,70 +58,11 @@ export function mixin<T extends (abstract new () => void)[]>(...constructors: T)
 
 
   // copy prototype members (including symbols) from every input class
-  for (const C of constructors) {
-    const proto = C.prototype
-    if (proto === Object.prototype) continue
-
-    for (const key of Object.getOwnPropertyNames(proto)) {
-      if (key === "constructor") continue
-      const descriptor = Object.getOwnPropertyDescriptor(proto, key)!
-      // if target already has an array value and the new one is also an
-      // array, merge them to avoid overwriting decorator metadata
-      if (
-        descriptor &&
-        "value" in descriptor &&
-        Array.isArray(descriptor.value) &&
-        Array.isArray((Mixin.prototype as any)[key])
-      ) {
-        // create combined array without duplicates
-        const existing = (Mixin.prototype as any)[key] as any[]
-        (Mixin.prototype as any)[key] = Array.from(new Set([...existing, ...descriptor.value]))
-      } else {
-        Object.defineProperty(Mixin.prototype, key, descriptor)
-      }
-    }
-    for (const symbol of Object.getOwnPropertySymbols(proto)) {
-      const descriptor = Object.getOwnPropertyDescriptor(proto, symbol)!
-      if (
-        descriptor &&
-        "value" in descriptor &&
-        Array.isArray(descriptor.value) &&
-        Array.isArray((Mixin.prototype as any)[symbol])
-      ) {
-        const existing = (Mixin.prototype as any)[symbol] as any[]
-        (Mixin.prototype as any)[symbol] = Array.from(new Set([...existing, ...descriptor.value]))
-      } else {
-        Object.defineProperty(Mixin.prototype, symbol, descriptor)
-      }
-    }
+  for (const constructor of constructors) {
+    copyPrototypeMembers(Mixin, constructor)
+    copyStaticMembers(Mixin, constructor)
+    overrideInstanceOf(Mixin, constructor)
   }
-
-
-  copyStaticPropertiesSymbols(Mixin, constructors)
-
-
-  for (const C of constructors as any[]) {
-    let meta: any = C[MIXIN_CLASS]
-    if (!meta) {
-      meta = { mixed: [] }
-      Object.defineProperty(C, MIXIN_CLASS, { value: meta, configurable: true })
-    }
-
-    if (meta.mixed.includes(Mixin)) return Mixin as never
-    meta.mixed.push(Mixin)
-
-    const fallback = C[Symbol.hasInstance] ?? Function.prototype[Symbol.hasInstance]
-    defineProperty(C, Symbol.hasInstance, {
-      value(this: any, instance: any) {
-        if (!(instance && typeof instance === "object")) {
-          return fallback.call(this, instance)
-        }
-
-        return hasInstance(this, instance, C)
-      }
-    })
-  }
-
 
   return Mixin as never
 }
@@ -179,23 +120,81 @@ function hasInstance(me: any, instance: any, constructor: any) {
 }
 
 
-function copyStaticPropertiesSymbols(Mixin: any, constructors: any[]) {
-  for (const C of constructors) {
-    for (const key of Object.getOwnPropertyNames(C)) {
-      if (key === "name") continue
-      if (key === "length") continue
-      if (key === "prototype") continue
+function copyStaticMembers(Mixin: any, constructor: any) {
+  for (const key of Object.getOwnPropertyNames(constructor)) {
+    if (key === "name") continue
+    if (key === "length") continue
+    if (key === "prototype") continue
 
-      const descriptor = Object.getOwnPropertyDescriptor(C, key)!
-      defineProperty(Mixin, key, descriptor)
-    }
-    for (const symbol of Object.getOwnPropertySymbols(C)) {
-      if (symbol === MIXIN_CLASS) continue
-      if (symbol === MIXIN_METADATA) continue
-      if (symbol === Symbol.hasInstance) continue
+    const descriptor = Object.getOwnPropertyDescriptor(constructor, key)!
+    defineProperty(Mixin, key, descriptor)
+  }
+  for (const symbol of Object.getOwnPropertySymbols(constructor)) {
+    if (symbol === MIXIN_CLASS) continue
+    if (symbol === MIXIN_METADATA) continue
+    if (symbol === Symbol.hasInstance) continue
 
-      const descriptor = Object.getOwnPropertyDescriptor(C, symbol)!
-      defineProperty(Mixin, symbol, descriptor)
+    const descriptor = Object.getOwnPropertyDescriptor(constructor, symbol)!
+    defineProperty(Mixin, symbol, descriptor)
+  }
+}
+
+function copyPrototypeMembers(Mixin: any, constructor: any) {
+  const proto = constructor.prototype
+  if (proto === Object.prototype) return
+
+  for (const key of Object.getOwnPropertyNames(proto)) {
+    if (key === "constructor") return
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key)!
+    // if target already has an array value and the new one is also an
+    // array, merge them to avoid overwriting decorator metadata
+    if (
+      descriptor &&
+      "value" in descriptor &&
+      Array.isArray(descriptor.value) &&
+      Array.isArray((Mixin.prototype as any)[key])
+    ) {
+      // create combined array without duplicates
+      const existing = (Mixin.prototype as any)[key] as any[]
+      (Mixin.prototype as any)[key] = Array.from(new Set([...existing, ...descriptor.value]))
+    } else {
+      Object.defineProperty(Mixin.prototype, key, descriptor)
     }
   }
+  for (const symbol of Object.getOwnPropertySymbols(proto)) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, symbol)!
+    if (
+      descriptor &&
+      "value" in descriptor &&
+      Array.isArray(descriptor.value) &&
+      Array.isArray((Mixin.prototype as any)[symbol])
+    ) {
+      const existing = (Mixin.prototype as any)[symbol] as any[]
+      (Mixin.prototype as any)[symbol] = Array.from(new Set([...existing, ...descriptor.value]))
+    } else {
+      Object.defineProperty(Mixin.prototype, symbol, descriptor)
+    }
+  }
+}
+
+function overrideInstanceOf(Mixin: any, constructor: any) {
+  let meta: any = constructor[MIXIN_CLASS]
+  if (!meta) {
+    meta = { mixed: [] }
+    Object.defineProperty(constructor, MIXIN_CLASS, { value: meta, configurable: true })
+  }
+
+  if (meta.mixed.includes(Mixin)) return Mixin as never
+  meta.mixed.push(Mixin)
+
+  const fallback = constructor[Symbol.hasInstance] ?? Function.prototype[Symbol.hasInstance]
+  defineProperty(constructor, Symbol.hasInstance, {
+    value(this: any, instance: any) {
+      if (!(instance && typeof instance === "object")) {
+        return fallback.call(this, instance)
+      }
+
+      return hasInstance(this, instance, constructor)
+    }
+  })
 }
