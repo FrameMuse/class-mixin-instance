@@ -159,6 +159,7 @@ const mixed = new Mixed
 - Caching relies on `CompositeMap`, which uses BitWise Keys Composition, it's the fastest approach for `CompositeMap`, but the speed works up to 32 mixin variants. When 32 variants are exceeded, it starts using `BigInt`, which creates overhead.
 - When a mixed class is created, its prototype is constructed immediately by copying all properties (including symbol keys) from each base class. This ensures any metadata created by decorators lives on the mixed prototype as well.
 - Static members and other non‑prototype properties from each mixin are also copied to the resulting class. Fields declared outside the constructor are handled by instantiating each base and merging its own instance properties into `this`.
+- The act of overriding `instanceof` itself declines the performance by 5x, but it falls within acceptable performance for low-level operations (1ns ~ 50ns) and future engine optimizations may improve if significantly.
 
 ## Performance
 
