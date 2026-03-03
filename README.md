@@ -6,6 +6,9 @@ The closest analogy is if `class User implements Person, Profile { }` would actu
 As `implements` is a TypeScript feature, it doesn't exist in runtime, that's why this library relies on `extends` behavior.
 Though it still looks readable - `class User extends mixin(Person, Profile) { }`.
 
+There is an alternative [`ts-mixer`](http://npmjs.com/package/ts-mixer), but this library tries to achive more native feeling,
+like `mixin` is actually a part of JavaScript/TypeScript.
+
 ## Install
 
 ```bash
