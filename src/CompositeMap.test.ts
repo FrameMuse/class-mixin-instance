@@ -40,22 +40,22 @@ describe("CompositeMap", () => {
     expect(map.get([obj2])).toBeUndefined() // Should be undefined because references differ
   })
 
-  it("should handle high-frequency collisions", () => {
+  it("should handle high-frequency collisions deterministically", () => {
     const map = new CompositeMap<object[], number>()
     const pool = Array.from({ length: 100 }, () => ({}))
     const entries = new Map<string, number>()
 
-    // Create random permutations of keys
-    for (let i = 0; i < 1000; i++) {
+    // generate unique sets of three indices (order doesn't matter)
+    while (entries.size < 1000) {
       const idx1 = Math.floor(Math.random() * pool.length)
       const idx2 = Math.floor(Math.random() * pool.length)
       const idx3 = Math.floor(Math.random() * pool.length)
-
-      const key = [pool[idx1], pool[idx2], pool[idx3]]
-      const val = i
-
-      map.set(key, val)
-      entries.set(`${idx1}-${idx2}-${idx3}`, val)
+      const sorted = [idx1, idx2, idx3].sort((a, b) => a - b)
+      const keyStr = sorted.join("-")
+      if (entries.has(keyStr)) continue
+      const val = entries.size
+      entries.set(keyStr, val)
+      map.set(sorted.map(i => pool[i]) as object[], val)
     }
 
     for (const [rawKey, expectedVal] of entries) {

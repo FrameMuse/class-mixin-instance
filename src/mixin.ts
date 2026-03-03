@@ -143,14 +143,14 @@ function defineProperty(o: any, p: PropertyKey, attributes: PropertyDescriptor &
 
 
 function hasInstance(me: any, instance: any, constructor: any) {
-  const myMeta: any = me[MIXIN_CLASS]
+  const myMeta: any = me[MIXIN_METADATA]
   const isTestingMixed = myMeta && myMeta.bases
 
   if (isTestingMixed) {
     const myBases: any[] = myMeta.bases
     for (const M of constructor[MIXIN_CLASS].mixed as any[]) {
       if (M.prototype.isPrototypeOf(instance)) {
-        const theirMeta: any = (M as any)[MIXIN_CLASS]
+        const theirMeta: any = (M as any)[MIXIN_METADATA]
         const theirBases: any[] = theirMeta?.bases || []
         if (
           theirBases.length === myBases.length &&

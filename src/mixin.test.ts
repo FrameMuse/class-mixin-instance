@@ -136,4 +136,29 @@ describe("mixin", () => {
     expect(ranPerson).toBe(true)
     expect(ranProfile).toBe(true)
   })
+
+  it("does not collide for different sets when order is irrelevant", () => {
+    const pool = Array.from({ length: 50 }, () => class { })
+    const seen = new Map<string, any>()
+
+    for (let i = 0; i < 1000; i++) {
+      const idxs: number[] = []
+      while (idxs.length < 3) {
+        const r = Math.floor(Math.random() * pool.length)
+        if (!idxs.includes(r)) idxs.push(r)
+      }
+      const sorted = [...idxs].sort((a, b) => a - b)
+      const key = sorted.join(",")
+      const perm = [...sorted].sort(() => Math.random() - 0.5)
+      const m = mixin(pool[perm[0]], pool[perm[1]], pool[perm[2]])
+      if (seen.has(key)) {
+        expect(seen.get(key)).toBe(m)
+      } else {
+        seen.set(key, m)
+      }
+    }
+
+    const unique = new Set(seen.values())
+    expect(unique.size).toBe(seen.size)
+  })
 })

@@ -1,4 +1,4 @@
-import { mixin, MIXIN_METADATA } from "./mixin"
+import { mixin } from "./mixin"
 
 @mixin.member
 class Person {
@@ -38,8 +38,3 @@ user instanceof mixin(Person, Profile) // === true
 // repeated mixin invocation should still recognize the same instance
 const MAgain = mixin(Person, Profile);
 user instanceof MAgain // === true (metadata-based instanceof)
-
-  // internal metadata is stored on the base constructors
-  // (for debugging/inspection; not part of public API)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ; (Person as any)[MIXIN_METADATA]?.mixed // array of mixed classes
