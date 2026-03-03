@@ -57,6 +57,7 @@ user instanceof mixin(Person, Profile) // === true
 - a mixin class can define public/protected/private visibility.
 - a mixin class can define a constructor.
 - a mixin class can't define constructor arguments.
+- a mixin doesn't have to be extended.
 - mixin classes types must match each other, otherwise error will be shown at `extends mixin(Person, Profile)`.
 - a class that extends a mixin can be checked with `instanceof` for each class and altogether.
 
@@ -98,6 +99,19 @@ console.log(Both.prototype[META]) // => ["alpha-foo","beta-bar"]
 
 Decorated members with the same name from different classes are all
 preserved, the mixed prototype simply contains both pieces of metadata.
+
+## Standalone Invocation
+
+
+`mixin(A, B, C)` can be invoked itself as a class, which would result in an object that shares `A`, `B`, `C` classes.
+
+```ts
+const mixed = new mixin(A, B, C)
+// Or
+
+const Mixed = mixin(A, B, C)
+const mixed = new Mixed
+```
 
 ## Notes on implementation
 
