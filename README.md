@@ -7,7 +7,7 @@ As `implements` is a TypeScript feature, it doesn't exist in runtime, that's why
 Though it still looks readable - `class User extends mixin(Person, Profile) { }`.
 
 There is an alternative [`ts-mixer`](http://npmjs.com/package/ts-mixer), but this library tries to achive more native feeling,
-like `mixin` is actually a part of JavaScript/TypeScript.
+like `mixin` is actually a part of JavaScript/TypeScript. This library includes only one method `mixin`, the rest is done via plain JavaScript.
 
 ## Install
 
