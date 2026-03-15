@@ -199,4 +199,38 @@ describe("mixin", () => {
 
     expect(user).toBeInstanceOf(User)
   })
+
+
+  it('should call all methods in order', () => {
+    let calls: string[] = [];
+
+    class Foo {
+      public method() {
+        calls.push('Foo');
+        return 'foo';
+      }
+    }
+
+    class Bar {
+      public method() {
+        calls.push('Bar');
+        return 'bar';
+      }
+    }
+
+    class Baz {
+      public method() {
+        calls.push('Baz');
+        return 'baz';
+      }
+    }
+
+    class FooBarBaz extends mixin(Foo, Bar, Baz) { }
+
+    const instance = new FooBarBaz
+    const result = instance.method();
+
+    expect(calls).toEqual(['Foo', 'Bar', 'Baz']);
+    expect(result).toBe('baz'); // returns the last one's value
+  });
 })
