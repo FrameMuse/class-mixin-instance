@@ -156,9 +156,6 @@ function deepDecoratorSearch(cls: Function): any {
     let include = related.has(c);
     if (!include) {
       // still allow other heuristics (instanceof, prototype membership, etc.)
-      if (cls.prototype instanceof c) {
-        include = true;
-      }
       if (!include && related.size && false) {
         // intentionally left blank - included above
       }
