@@ -43,7 +43,23 @@ export function copyPrototypeMembers(Target: any, constructor: Function): void {
     if (key === "constructor") continue
 
     const descriptor = Reflect.getOwnPropertyDescriptor(prototype, key)!
-    Object.defineProperty(Target.prototype, key, descriptor)
+    const existingDescriptor = Reflect.getOwnPropertyDescriptor(Target.prototype, key)
+
+    if (existingDescriptor && typeof existingDescriptor.value === 'function' && typeof descriptor.value === 'function') {
+      // Chain the functions: call existing first, then new
+      const chainedFunction = function(this: any, ...args: any[]) {
+        existingDescriptor.value.apply(this, args)
+        return descriptor.value.apply(this, args)
+      }
+      // Preserve other descriptor properties
+      const newDescriptor = {
+        ...descriptor,
+        value: chainedFunction
+      }
+      Object.defineProperty(Target.prototype, key, newDescriptor)
+    } else {
+      Object.defineProperty(Target.prototype, key, descriptor)
+    }
   }
 }
 
