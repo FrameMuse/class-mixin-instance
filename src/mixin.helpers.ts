@@ -35,7 +35,7 @@ export function copyStaticMembers(Mixin: any, constructor: any): void {
 }
 
 /** @internal */
-export function copyPrototypeMembers(Target: any, constructor: Function): void {
+export function copyPrototypeMembers(Target: any, constructor: Function, descriptors: Map<PropertyKey, PropertyDescriptor[]>): void {
   const prototype = constructor.prototype
   if (prototype === Object.prototype) return
 
@@ -43,22 +43,48 @@ export function copyPrototypeMembers(Target: any, constructor: Function): void {
     if (key === "constructor") continue
 
     const descriptor = Reflect.getOwnPropertyDescriptor(prototype, key)!
-    const existingDescriptor = Reflect.getOwnPropertyDescriptor(Target.prototype, key)
+    if (!descriptors.has(key)) {
+      descriptors.set(key, [])
+    }
+    descriptors.get(key)!.push(descriptor)
+  }
+}
 
-    if (existingDescriptor && typeof existingDescriptor.value === 'function' && typeof descriptor.value === 'function') {
-      // Chain the functions: call existing first, then new
-      const chainedFunction = function(this: any, ...args: any[]) {
-        existingDescriptor.value.apply(this, args)
-        return descriptor.value.apply(this, args)
+/** @internal */
+export function resolvePrototypeMembers(Target: any, descriptors: Map<PropertyKey, PropertyDescriptor[]>): void {
+  for (const [key, propertyDescriptors] of descriptors) {
+    const existing = Reflect.getOwnPropertyDescriptor(Target.prototype, key)
+    const allDescriptors = existing ? [existing, ...propertyDescriptors] : propertyDescriptors
+
+    if (propertyDescriptors.length === 1) {
+      Object.defineProperty(Target.prototype, key, propertyDescriptors[0])
+      continue
+    }
+
+    const root = allDescriptors[0]
+
+    // Chain functions
+    if (typeof root.value === "function") {
+      const chained = function (this: any, ...args: any[]) {
+        let result
+        for (const descriptor of allDescriptors) {
+          result = descriptor.value.apply(this, args)
+        }
+        return result
       }
-      // Preserve other descriptor properties
-      const newDescriptor = {
-        ...descriptor,
-        value: chainedFunction
-      }
-      Object.defineProperty(Target.prototype, key, newDescriptor)
-    } else {
-      Object.defineProperty(Target.prototype, key, descriptor)
+      const newDesc = { ...root, value: chained }
+
+      Object.defineProperty(Target.prototype, key, newDesc)
+      continue
+    }
+
+    // Merge arrays
+    if (Array.isArray(root.value)) {
+      const merged = allDescriptors.flatMap(d => d.value)
+      const newDesc = { ...root, value: merged }
+
+      Object.defineProperty(Target.prototype, key, newDesc)
+      continue
     }
   }
 }

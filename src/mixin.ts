@@ -1,5 +1,5 @@
 import { CompositeMap } from "./CompositeMap"
-import { copyPrototypeMembers, copyReflectMetadata, copyStaticMembers, MIXIN_CLASS, MIXIN_METADATA, overrideInstanceOf } from "./mixin.helpers"
+import { copyPrototypeMembers, copyReflectMetadata, copyStaticMembers, MIXIN_CLASS, MIXIN_METADATA, overrideInstanceOf, resolvePrototypeMembers } from "./mixin.helpers"
 import { AbstractClass, MixinCallable, MixinConstructor, MixinMetadata, MixinNewable, UnionToIntersection } from "./mixin.types"
 
 
@@ -60,7 +60,8 @@ function createMixed<T extends AbstractClass[]>(constructors: T): MixinConstruct
   mixinCache.set(constructors, Mixin)
 
 
-  // copy prototype members (including symbols) from every input class
+  // accumulate prototype members from every input class
+  const prototypeDescriptors = new Map<PropertyKey, PropertyDescriptor[]>()
   for (const constructor of constructors as any[]) {
     const instance = new constructor
     const instanceKeys = Reflect.ownKeys(instance)
@@ -68,11 +69,14 @@ function createMixed<T extends AbstractClass[]>(constructors: T): MixinConstruct
     properties.set(constructor, instanceKeys)
 
     // console.log("constructor", constructor)
-    copyPrototypeMembers(Mixin, constructor)
+    copyPrototypeMembers(Mixin, constructor, prototypeDescriptors)
     copyStaticMembers(Mixin, constructor)
     copyReflectMetadata(Mixin, constructor) // Copy decorators.
     overrideInstanceOf(constructor, hasInstance)
   }
+
+  // resolve accumulated prototype members
+  resolvePrototypeMembers(Mixin, prototypeDescriptors)
 
   return Mixin as never
 }
