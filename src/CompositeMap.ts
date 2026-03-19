@@ -1,39 +1,38 @@
 export class CompositeMap<K extends object[], V> {
-  private static readonly MAX_SAFE_INT_BIT = 31
+  private static ID = 0
+  private static IDIncrement = () => this.ID++
 
-  private readonly objectValues = new Map<number | bigint, V>()
-  private readonly objectIds = new Map<object, number>()
+  private static readonly ids = new WeakMap<object, number>()
+  private static readonly values = new Map<number | bigint, any>()
 
-  private idCounter = 0
-  private incrementIdCounter = () => this.idCounter++
+  private static getId(key: any): number {
+    return CompositeMap.ids.getOrInsertComputed(key, CompositeMap.IDIncrement)
+  }
 
-  private hash(keys: K): number | bigint {
-    let hash = 0
-    let hashBig: bigint | undefined
-
+  private hash(keys: K): number {
+    let hash = 0;
     for (let i = 0; i < keys.length; i++) {
-      const key = keys[i]
-      const id = this.objectIds.getOrInsertComputed(key, this.incrementIdCounter)
+      let id = CompositeMap.getId(keys[i]);
 
-      // If at least one id is out of safe zone, escalate hash to BigInt.
-      if (id >= CompositeMap.MAX_SAFE_INT_BIT) hashBig ??= BigInt(hash)
-      if (hashBig != null) {
-        hashBig |= 1n << BigInt(id)
-      } else {
-        hash |= 1 << id
-      }
+      // Fast mixing (MurmurHash3-style 32-bit mixer)
+      id ^= id >>> 16;
+      id = Math.imul(id, 0x85ebca6b);
+      id ^= id >>> 13;
+      id = Math.imul(id, 0xc2b2ae35);
+      id ^= id >>> 16;
 
+      // Commutative addition (order-independent)
+      hash = (hash + id) | 0;
     }
-
-    return hashBig ?? hash
+    return hash;
   }
 
   set(keys: K, value: V): this {
-    this.objectValues.set(this.hash(keys), value)
+    CompositeMap.values.set(this.hash(keys), value)
     return this
   }
 
   get(keys: K): V | undefined {
-    return this.objectValues.get(this.hash(keys))
+    return CompositeMap.values.get(this.hash(keys))
   }
 }
